@@ -45,7 +45,7 @@
       
 static long seed[STREAMS] = {DEFAULT};  /* current state of each stream   */
 static int  stream        = 0;          /* stream index, 0 is the default */
-static int  initialized   = 0;          /* test for stream initialization */
+static int  initialized   = 1;          /* test for stream initialization */
 
 
    double Random(void)
@@ -64,6 +64,7 @@ static int  initialized   = 0;          /* test for stream initialization */
     seed[stream] = t;
   else 
     seed[stream] = t + MODULUS;
+
   return ((double) seed[stream] / MODULUS);
 }
 
@@ -78,6 +79,7 @@ static int  initialized   = 0;          /* test for stream initialization */
  * ---------------------------------------------------------------------
  */
 {
+  
   const long Q = MODULUS / A256;
   const long R = MODULUS % A256;
         int  j;
@@ -133,6 +135,8 @@ static int  initialized   = 0;          /* test for stream initialization */
  * ---------------------------------------------------------------
  */
 {
+  // for (int j = 0; j < STREAMS; j++)
+  //   printf("%d ",seed[j]);
   *x = seed[stream];
 }
 

@@ -13,12 +13,12 @@ int main( void ){
     PlantSeeds( 123456789 );
 
     // Default value, placed in stream 0
-    SelectStream( 0 );
-    PutSeed( 123456789 );
+    // SelectStream( 0 );
+    // PutSeed( 123456789 );
 
     // Seed 10,000,001 cycles away, placed in stream 1
-    SelectStream( 1 );
-    PutSeed( 453248854 );
+    // SelectStream( 1 );
+    // PutSeed( 453248854 );
     
 
     /* ----------------------------------------------------------

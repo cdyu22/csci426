@@ -118,9 +118,7 @@
   printf("   average interarrival time (r) = %6.2f\n", sum.interarrival / index);
   printf("   average wait ............ (w) = %6.2f\n", sum.wait / index);
   printf("   average delay ........... (d) = %6.2f\n\n", sum.delay / index);
-
   printf("   average service time .... (s) = %6.2f\n\n", sum.service / index);
-
   printf("   average # in the node ... (l) = %6.2f\n", sum.wait / departure);
   printf("   average # in the queue .. (q) = %6.2f\n", sum.delay / departure);
   printf("   utilization ............. (x) = %6.2f\n", sum.service / departure);

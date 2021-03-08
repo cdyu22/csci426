@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <math.h>                                             
 #include "rngs.h"
-
+//1000000000 100000
 #define LAST         1000000000L                   /* number of jobs processed */ 
 #define START        0.0                      /* initial time             */ 
 
@@ -45,26 +45,29 @@
  * ------------------------------
  */ 
 {       
-const double mean[2] = {4.0, 6.0};
-static double arrival[2] = {START, START};
-static int init = 1;
-  double temp;
-if (init) { /* initialize the arrival array */
-  SelectStream(0);
-  arrival[0] += Exponential(mean[0]);
-  SelectStream(1);
-  arrival[1] += Exponential(mean[1]);
-  init = 0;
-}
-if (arrival[0] <= arrival[1])
-  *j = 0; /* next arrival is job type 0 */
-else
-  *j = 1; /* next arrival is job type 1 */
-temp = arrival[*j]; /* next arrival time */
-SelectStream(*j); /* use stream j for job type j */
-arrival[*j] += Exponential(mean[*j]);
-return (temp);
-
+  const double mean[3] = {4.0, 6.0, 8.0};
+  static double arrival[3] = {START, START, START};
+  static int init = 1;
+    double temp;
+  if (init) { /* initialize the arrival array */
+    SelectStream(0);
+    arrival[0] += Exponential(mean[0]);
+    SelectStream(1);
+    arrival[1] += Exponential(mean[1]);
+    SelectStream(2);
+    arrival[2] += Exponential(mean[2]);
+    init = 0;
+  }
+  if (arrival[0] <= arrival[1] && arrival[0] <= arrival[2])
+    *j = 0; /* next arrival is job type 0 */
+  else if (arrival[1] <= arrival[0] && arrival[1] <= arrival[2])
+    *j = 1; /* next arrival is job type 1 */
+  else
+    *j = 2;
+  temp = arrival[*j]; /* next arrival time */
+  SelectStream(*j); /* use stream j for job type j */
+  arrival[*j] += Exponential(mean[*j]);
+  return (temp);
 }
 
 
@@ -74,9 +77,9 @@ return (temp);
  * ------------------------------
  */ 
 {
-  const double min[2] = {1.0, 0.0};
-  const double max[2] = {3.0, 4.0};
-  SelectStream(j + 2); /* use stream j + 2 for job type j */
+  const double min[3] = {0.0, 1.0, 1.0};
+  const double max[3] = {2.0, 2.0, 5.0};
+  SelectStream(j + 3); /* use stream j + 2 for job type j */
   return (Uniform(min[j], max[j]));
 }
 
@@ -89,6 +92,7 @@ return (temp);
   double service;                               /* service time         */
   double wait;                                  /* delay + service      */
   double departure = START;                     /* time of departure    */
+  int jobs[3] = {0, 0, 0}; //Count all jobs
   struct {                                      /* sum of ...           */
     double delay;                               /*   delay times        */
     double wait;                                /*   wait times         */
@@ -96,10 +100,11 @@ return (temp);
     double interarrival;                        /*   interarrival times */
   } sum = {0.0, 0.0, 0.0};  
 
+  double sumJob[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   PlantSeeds(123456789);
 
   while (index < LAST) {
-    int jobType; // Either 0 or 1
+    int jobType; // Either 0, 1 or 2
     index++;
     arrival      = GetArrival(&jobType);
     if (arrival < departure)
@@ -109,20 +114,53 @@ return (temp);
     service      = GetService(jobType);
     wait         = delay + service;
     departure    = arrival + wait;              /* time of departure */
+
+    sumJob[0 + (jobType * 3)]   += delay;
+    sumJob[1 + (jobType * 3)]   += wait;
+    sumJob[2 + (jobType * 3)]   += service;
+    
     sum.delay   += delay;
     sum.wait    += wait;
     sum.service += service;
+    jobs[jobType]++;
   } 
   sum.interarrival = arrival - START;
 
   printf("\nfor %ld jobs\n", index);
-  printf("   average interarrival time = %6.2f\n", sum.interarrival / index);
-  printf("   average wait ............ = %6.2f\n", sum.wait / index);
-  printf("   average delay ........... = %6.2f\n", sum.delay / index);
-  printf("   average service time .... = %6.2f\n", sum.service / index);
-  printf("   average # in the node ... = %6.2f\n", sum.wait / departure);
-  printf("   average # in the queue .. = %6.2f\n", sum.delay / departure);
-  printf("   utilization ............. = %6.2f\n", sum.service / departure);
+  printf("   average interarrival time (r) = %6.2f\n\n", sum.interarrival / index);
 
+  printf("ALL JOBS\n");
+  printf("   average wait ............ (w) = %6.2f\n", sum.wait / index);
+  printf("   average delay ........... (d) = %6.2f\n", sum.delay / index);
+  printf("   average service time .... (s) = %6.2f\n", sum.service / index);
+  printf("   average # in the node ... (l) = %6.2f\n", sum.wait / departure);
+  printf("   average # in the queue .. (q) = %6.2f\n", sum.delay / departure);
+  printf("   utilization ............. (x) = %6.2f\n\n", sum.service / departure);
+
+  printf("JOB TYPE 0\n");
+  printf("   average wait ............ (w) = %6.2f\n", sumJob[1] / index);
+  printf("   average delay ........... (d) = %6.2f\n", sumJob[0] / index);
+  printf("   average service time .... (s) = %6.2f\n", sumJob[2] / index);
+  printf("   average # in the node ... (l) = %6.2f\n", sumJob[1] / departure);
+  printf("   average # in the queue .. (q) = %6.2f\n", sumJob[0] / departure);
+  printf("   utilization ............. (x) = %6.2f\n\n", sumJob[2] / departure);
+
+  printf("JOB TYPE 1\n");
+  printf("   average wait ............ (w) = %6.2f\n", sumJob[4] / index);
+  printf("   average delay ........... (d) = %6.2f\n", sumJob[3] / index);
+  printf("   average service time .... (s) = %6.2f\n", sumJob[5] / index);
+  printf("   average # in the node ... (l) = %6.2f\n", sumJob[4] / departure);
+  printf("   average # in the queue .. (q) = %6.2f\n", sumJob[3] / departure);
+  printf("   utilization ............. (x) = %6.2f\n\n", sumJob[5] / departure);
+
+  printf("JOB TYPE 2\n");
+  printf("   average wait ............ (w) = %6.2f\n", sumJob[7] / index);
+  printf("   average delay ........... (d) = %6.2f\n", sumJob[6] / index);
+  printf("   average service time .... (s) = %6.2f\n", sumJob[8] / index);
+  printf("   average # in the node ... (l) = %6.2f\n", sumJob[7] / departure);
+  printf("   average # in the queue .. (q) = %6.2f\n", sumJob[6] / departure);
+  printf("   utilization ............. (x) = %6.2f\n\n", sumJob[8] / departure);
+
+  printf("Job 0: %f; Job 1: %f, Job 2: %f    \n", (float)jobs[0]/LAST, (float)jobs[1]/LAST, (float)jobs[2]/LAST);
   return (0);
 }

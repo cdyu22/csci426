@@ -15,7 +15,7 @@
 #include <math.h>                                             
 #include "rngs.h"
 //1000000000 100000
-#define LAST         700000000L                   /* number of jobs processed */ 
+#define LAST         8367781L                   /* number of jobs processed */ 
 #define START        0.0                      /* initial time             */ 
 
 
@@ -49,7 +49,7 @@
   static double arrival[3] = {START, START, START};
   static int init = 1;
     double temp;
-  if (init) { /* initialize the arrival array */
+  if (init) { // To initialize the array of values
     SelectStream(0);
     arrival[0] += Exponential(mean[0]);
     SelectStream(1);
@@ -59,13 +59,13 @@
     init = 0;
   }
   if (arrival[0] <= arrival[1] && arrival[0] <= arrival[2])
-    *j = 0; /* next arrival is job type 0 */
+    *j = 0; // Next arrival is of type 0
   else if (arrival[1] <= arrival[0] && arrival[1] <= arrival[2])
-    *j = 1; /* next arrival is job type 1 */
-  else
+    *j = 1; // Next arrival is of type 1
+  else // Neither type 0 or 1, so must be type 2
     *j = 2;
-  temp = arrival[*j]; /* next arrival time */
-  SelectStream(*j); /* use stream j for job type j */
+  temp = arrival[*j]; // The next arrival time
+  SelectStream(*j); // Should use the stream of type j
   arrival[*j] += Exponential(mean[*j]);
   return (temp);
 }
@@ -100,7 +100,9 @@
     double interarrival;                        /*   interarrival times */
   } sum = {0.0, 0.0, 0.0};  
 
-  double sumJob[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+  // To record the value of the delay, wait and service for each job type.
+  double sumJob[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }; 
+  
   PlantSeeds(123456789);
 
   while (index < LAST) {
@@ -162,5 +164,6 @@
   printf("   utilization ............. (x) = %6.2f\n\n", sumJob[8] / departure);
 
   printf("Job 0: %f; Job 1: %f, Job 2: %f    \n", (float)jobs[0]/LAST, (float)jobs[1]/LAST, (float)jobs[2]/LAST);
+
   return (0);
 }

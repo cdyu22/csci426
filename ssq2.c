@@ -15,7 +15,7 @@
 #include <math.h>                                             
 #include "rngs.h"
 //1000000000 100000
-#define LAST         1000000000L                   /* number of jobs processed */ 
+#define LAST         700000000L                   /* number of jobs processed */ 
 #define START        0.0                      /* initial time             */ 
 
 

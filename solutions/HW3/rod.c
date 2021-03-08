@@ -7,7 +7,7 @@ int main( void ){
     int win = 0, loss = 0; 
 
     // The amount of times we want to run the simulation
-    int runs = 10000000;
+    int runs = 1073741824;
 
     // Populating the stream so we can plant our own values.
     PlantSeeds( 123456789 );
@@ -45,7 +45,7 @@ int main( void ){
         p1 = Random();
         
         // Go to stream 1 and get a random value, iterates stream 1
-        SelectStream( 1 );
+        SelectStream( 127 );
         p2 = Random();
 
         // The switch statement if p1 is less than p2

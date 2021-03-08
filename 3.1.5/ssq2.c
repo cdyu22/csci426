@@ -13,9 +13,9 @@
 
 #include <stdio.h>
 #include <math.h>                                             
-#include "rng.h"
+#include "rngs.h"
 
-#define LAST         1000000000L                   /* number of jobs processed */ 
+#define LAST         1000000L                   /* number of jobs processed */ 
 #define START        0.0                      /* initial time             */ 
 
 
@@ -24,7 +24,8 @@
  * generate an Exponential random variate, use m > 0.0 
  * ---------------------------------------------------
  */
-{                                       
+{       
+  SelectStream(0);                                
   return (-m * log(1.0 - Random()));     
 }
 
@@ -34,10 +35,20 @@
  * generate a Uniform random variate, use a < b 
  * --------------------------------------------
  */
-{                                         
+{        
+  SelectStream(85);                                 
   return (a + (b - a) * Random());    
 }
 
+  long Geometric(double p)
+/* -----------------------------------
+ * generate a geometric random variate
+ * -----------------------------------
+ */ 
+{
+    SelectStream(170);
+    return ((long) (log(1.0 - Random()) / log(p)));
+}
 
    double GetArrival(void)
 /* ------------------------------
@@ -50,16 +61,6 @@
   arrival += Exponential(2.0);
   return (arrival);
 }
-
-  long Geometric(double p)
-/* -----------------------------------
- * generate a geometric random variate
- * -----------------------------------
- */ 
-{
-    return ((long) (log(1.0 - Random()) / log(p)));
-}
-
 
    double GetService(void)
 /* ------------------------------
@@ -95,7 +96,7 @@
     double interarrival;                        /*   interarrival times */
   } sum = {0.0, 0.0, 0.0};  
 
-  PutSeed(123456789);
+  PlantSeeds(123456789);
 
   while (index < LAST) {
     index++;
@@ -121,7 +122,7 @@
   printf("   average service time .... (s) = %6.2f\n\n", sum.service / index);
   printf("   average # in the node ... (l) = %6.2f\n", sum.wait / departure);
   printf("   average # in the queue .. (q) = %6.2f\n", sum.delay / departure);
-  printf("   utilization ............. (x) = %6.2f\n", sum.service / departure);
+  printf("   utilization ............. (x) = %6.2f\n\n", sum.service / departure);
 
   return (0);
 }

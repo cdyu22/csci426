@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 #include <math.h>                                             
-#include "rngs.h"
+#include "rng.h"
 
 #define LAST         1000000000L                   /* number of jobs processed */ 
 #define START        0.0                      /* initial time             */ 
@@ -39,45 +39,44 @@
 }
 
 
-   double GetArrival(int *j)
+   double GetArrival(void)
 /* ------------------------------
  * generate the next arrival time
  * ------------------------------
  */ 
 {       
-const double mean[2] = {4.0, 6.0};
-static double arrival[2] = {START, START};
-static int init = 1;
-  double temp;
-if (init) { /* initialize the arrival array */
-  SelectStream(0);
-  arrival[0] += Exponential(mean[0]);
-  SelectStream(1);
-  arrival[1] += Exponential(mean[1]);
-  init = 0;
-}
-if (arrival[0] <= arrival[1])
-  *j = 0; /* next arrival is job type 0 */
-else
-  *j = 1; /* next arrival is job type 1 */
-temp = arrival[*j]; /* next arrival time */
-SelectStream(*j); /* use stream j for job type j */
-arrival[*j] += Exponential(mean[*j]);
-return (temp);
+  static double arrival = START;                                        
 
+  arrival += Exponential(2.0);
+  return (arrival);
+}
+
+  long Geometric(double p)
+/* -----------------------------------
+ * generate a geometric random variate
+ * -----------------------------------
+ */ 
+{
+    return ((long) (log(1.0 - Random()) / log(p)));
 }
 
 
-   double GetService(int j)
+   double GetService(void)
 /* ------------------------------
  * generate the next service time
  * ------------------------------
  */ 
 {
-  const double min[2] = {1.0, 0.0};
-  const double max[2] = {3.0, 4.0};
-  SelectStream(j + 2); /* use stream j + 2 for job type j */
-  return (Uniform(min[j], max[j]));
+  long   k;
+  double sum = 0.0;
+  long   tasks = 1 + Geometric(0.9);
+
+  for (k = 0; k < tasks; k++)
+    sum += Uniform(0.1,0.2);
+  return sum;
+
+  // Original GetService function for this file.
+  // return (Uniform(1.0, 2.0));
 }
 
 
@@ -96,17 +95,16 @@ return (temp);
     double interarrival;                        /*   interarrival times */
   } sum = {0.0, 0.0, 0.0};  
 
-  PlantSeeds(123456789);
+  PutSeed(123456789);
 
   while (index < LAST) {
-    int jobType; // Either 0 or 1
     index++;
-    arrival      = GetArrival(&jobType);
+    arrival      = GetArrival();
     if (arrival < departure)
       delay      = departure - arrival;         /* delay in queue    */
     else
       delay      = 0.0;                         /* no delay          */
-    service      = GetService(jobType);
+    service      = GetService();
     wait         = delay + service;
     departure    = arrival + wait;              /* time of departure */
     sum.delay   += delay;
@@ -116,13 +114,16 @@ return (temp);
   sum.interarrival = arrival - START;
 
   printf("\nfor %ld jobs\n", index);
-  printf("   average interarrival time = %6.2f\n", sum.interarrival / index);
-  printf("   average wait ............ = %6.2f\n", sum.wait / index);
-  printf("   average delay ........... = %6.2f\n", sum.delay / index);
-  printf("   average service time .... = %6.2f\n", sum.service / index);
-  printf("   average # in the node ... = %6.2f\n", sum.wait / departure);
-  printf("   average # in the queue .. = %6.2f\n", sum.delay / departure);
-  printf("   utilization ............. = %6.2f\n", sum.service / departure);
+
+  printf("   average interarrival time (r) = %6.2f\n", sum.interarrival / index);
+  printf("   average wait ............ (w) = %6.2f\n", sum.wait / index);
+  printf("   average delay ........... (d) = %6.2f\n\n", sum.delay / index);
+
+  printf("   average service time .... (s) = %6.2f\n\n", sum.service / index);
+
+  printf("   average # in the node ... (l) = %6.2f\n", sum.wait / departure);
+  printf("   average # in the queue .. (q) = %6.2f\n", sum.delay / departure);
+  printf("   utilization ............. (x) = %6.2f\n", sum.service / departure);
 
   return (0);
 }
